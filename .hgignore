@@ -34,10 +34,13 @@ syntax: glob
 *.scc
 __pycache__
 build
-localsettings.py
 *.sublime-project
 
 syntax: regexp
+^test/
+^tmp/
+^dist/.*\.(?:whl|zip|tar\.gz)
+^rl_renderPM.egg-info/.*
 ^bin/
 ^local/
 ^[Ii]nclude/
@@ -46,3 +49,5 @@ syntax: regexp
 ^[Ss]hare/
 ^[Ss]elenium/
 ^\.?py\d+/
+^\.git/
+^\.gitignore$
