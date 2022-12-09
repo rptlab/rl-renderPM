@@ -1,9 +1,21 @@
 #define PY_SSIZE_T_CLEAN
 #include "Python.h"
-
-#ifndef PyMem_New
-	/*Niki Spahiev <niki@vintech.bg> suggests this is required for 1.5.2*/
-#	define PyMem_New(type, n) ( (type *) PyMem_Malloc((n) * sizeof(type)) )
+#ifdef Py_LIMITED_API
+#	define RLPyBytes_Size PyBytes_Size
+#	define RLPyTuple_SetItem PyTuple_SetItem
+#	define RLPyList_SetItem PyList_SetItem
+#	define RLPyList_Size PyList_Size
+#	define RLPyFloat_AsDouble PyFloat_AsDouble
+#	define RLPyBytes_AsString PyBytes_AsString
+#	define RLPyUnicode_GetLength PyUnicode_GetLength
+#else
+#	define RLPyBytes_Size PyBytes_GET_SIZE
+#	define RLPyTuple_SetItem PyTuple_SET_ITEM
+#	define RLPyList_SetItem PyList_SET_ITEM
+#	define RLPyList_Size PyList_GET_SIZE
+#	define RLPyFloat_AsDouble PyFloat_AS_DOUBLE
+#	define RLPyBytes_AsString PyBytes_AS_STRING
+#	define RLPyUnicode_GetLength PyUnicode_GET_LENGTH
 #endif
 #include <string.h>
 #include "libart_lgpl/libart.h"
@@ -19,7 +31,7 @@
 #endif
 
 
-#define VERSION "4.03"
+#define VERSION "4.0.3"
 #define MODULENAME "_renderPM"
 #define PyInt_FromLong	PyLong_FromLong
 #define staticforward static
@@ -175,7 +187,7 @@ static py_FT_FontObject *_get_ft_face(char *fontName)
 			}
 		}
 
-	ft_face = PyObject_NEW(py_FT_FontObject, &py_FT_Font_Type);
+	ft_face = PyObject_New(py_FT_FontObject, &py_FT_Font_Type);
 	if(!ft_face){
 		PyErr_Format(PyExc_MemoryError, "Cannot allocate ft_face for TTFont %s", fontName);
 		goto RET;
@@ -186,7 +198,7 @@ static py_FT_FontObject *_get_ft_face(char *fontName)
 	_data = PyObject_GetAttrString(face,"_ttf_data");
 	Py_DECREF(face);
 	if(!_data) goto RET;
-	error = FT_New_Memory_Face(ft_library, (unsigned char *)PyBytes_AsString(_data), (FT_Long)PyBytes_GET_SIZE(_data), 0, &ft_face->face);
+	error = FT_New_Memory_Face(ft_library, (unsigned char *)PyBytes_AsString(_data), (FT_Long)RLPyBytes_Size(_data), 0, &ft_face->face);
 	Py_DECREF(_data);
 	if(error){
 		PyErr_Format(PyExc_IOError, "FT_New_Memory_Face(%s) Failed!", fontName);
@@ -237,7 +249,7 @@ static PyObject*  py_FT_font_getattr(py_FT_FontObject* self, char* name)
     return NULL;
 }
 
-statichere PyTypeObject py_FT_Font_Type = {
+static PyTypeObject py_FT_Font_Type = {
     PyVarObject_HEAD_INIT(NULL,0)
     "FT_Font", sizeof(py_FT_FontObject), 0,
     /* methods */
@@ -889,12 +901,12 @@ static PyObject* gstate_drawString(gstateObject* self, PyObject* args)
 			}
 		else if(PyBytes_Check(textObj)){
 			text = PyBytes_AsString(textObj);
-			textlen = PyBytes_GET_SIZE(textObj);
+			textlen = RLPyBytes_Size(textObj);
 			obj0 = PyUnicode_DecodeUTF8(text, textlen,NULL);
 			if(!obj0) return NULL;
 			}
 		else goto L0;
-		textlen = PyUnicode_GET_LENGTH(obj0);
+		textlen = RLPyUnicode_GetLength(obj0);
 		utext = PyUnicode_AsUCS4Copy(obj0);	/*we own this as of now*/
 		if(!utext){
 			PyErr_SetString(PyExc_ValueError, "_renderPM.gstate_drawString: Cannot allocate UCS4 memory!");
@@ -916,7 +928,7 @@ static PyObject* gstate_drawString(gstateObject* self, PyObject* args)
 			}
 		else goto L0;
 		text = PyBytes_AsString(obj0);
-		textlen = PyBytes_GET_SIZE(obj0);
+		textlen = RLPyBytes_Size(obj0);
 #ifdef	RENDERPM_FT
 		}
 #endif
@@ -1004,18 +1016,18 @@ L0:	PyErr_SetString(PyExc_ValueError, "_renderPM.gstate_drawString: text must be
 static PyObject* _fmtPathElement(ArtBpath *p, char* name, int n)
 {
 	PyObject	*P = PyTuple_New(n+1);
-	PyTuple_SET_ITEM(P, 0, PyUnicode_FromString(name));
+	RLPyTuple_SetItem(P, 0, PyUnicode_FromString(name));
 	if(n==6){
-		PyTuple_SET_ITEM(P, 1, PyFloat_FromDouble(p->x1));
-		PyTuple_SET_ITEM(P, 2, PyFloat_FromDouble(p->y1));
-		PyTuple_SET_ITEM(P, 3, PyFloat_FromDouble(p->x2));
-		PyTuple_SET_ITEM(P, 4, PyFloat_FromDouble(p->y2));
-		PyTuple_SET_ITEM(P, 5, PyFloat_FromDouble(p->x3));
-		PyTuple_SET_ITEM(P, 6, PyFloat_FromDouble(p->y3));
+		RLPyTuple_SetItem(P, 1, PyFloat_FromDouble(p->x1));
+		RLPyTuple_SetItem(P, 2, PyFloat_FromDouble(p->y1));
+		RLPyTuple_SetItem(P, 3, PyFloat_FromDouble(p->x2));
+		RLPyTuple_SetItem(P, 4, PyFloat_FromDouble(p->y2));
+		RLPyTuple_SetItem(P, 5, PyFloat_FromDouble(p->x3));
+		RLPyTuple_SetItem(P, 6, PyFloat_FromDouble(p->y3));
 		}
 	else {
-		PyTuple_SET_ITEM(P, 1, PyFloat_FromDouble(p->x3));
-		PyTuple_SET_ITEM(P, 2, PyFloat_FromDouble(p->y3));
+		RLPyTuple_SetItem(P, 1, PyFloat_FromDouble(p->x3));
+		RLPyTuple_SetItem(P, 2, PyFloat_FromDouble(p->y3));
 		}
 	return P;
 }
@@ -1023,9 +1035,9 @@ static PyObject* _fmtPathElement(ArtBpath *p, char* name, int n)
 static PyObject* _fmtVPathElement(ArtVpath *p, char* name, int n)
 {
 	PyObject	*P = PyTuple_New(n+1);
-	PyTuple_SET_ITEM(P, 0, PyUnicode_FromString(name));
-	PyTuple_SET_ITEM(P, 1, PyFloat_FromDouble(p->x));
-	PyTuple_SET_ITEM(P, 2, PyFloat_FromDouble(p->y));
+	RLPyTuple_SetItem(P, 0, PyUnicode_FromString(name));
+	RLPyTuple_SetItem(P, 1, PyFloat_FromDouble(p->x));
+	RLPyTuple_SetItem(P, 2, PyFloat_FromDouble(p->y));
 	return P;
 }
 
@@ -1054,7 +1066,7 @@ static PyObject* _get_gstatePath(int n, ArtBpath* path)
 			case ART_END:
 				break;
 			}
-		PyTuple_SET_ITEM(P, i, e);
+		RLPyTuple_SetItem(P, i, e);
 		}
 	return P;
 }
@@ -1087,7 +1099,7 @@ static PyObject* _get_gstateVPath(gstateObject *self)
 			case ART_END:
 				break;
 			}
-		PyTuple_SET_ITEM(P, i, e);
+		RLPyTuple_SetItem(P, i, e);
 		v++;
 		i++;
 		}
@@ -1123,12 +1135,12 @@ static PyObject* gstate__stringPath(gstateObject* self, PyObject* args)
 			}
 		else if(PyBytes_Check(textObj)){
 			text = PyBytes_AsString(textObj);
-			textlen = PyBytes_GET_SIZE(textObj);
+			textlen = RLPyBytes_Size(textObj);
 			obj0 = PyUnicode_DecodeUTF8(text, textlen,NULL);
 			if(!obj0) return NULL;
 			}
 		else goto L0;
-		textlen = PyUnicode_GET_LENGTH(obj0);
+		textlen = RLPyUnicode_GetLength(obj0);
 		utext = PyUnicode_AsUCS4Copy(obj0);	/*we own this as of now*/
 		if(!utext){
 			PyErr_SetString(PyExc_ValueError, "_renderPM.gstate__stringPath: Cannot allocate UCS4 memory!");
@@ -1150,7 +1162,7 @@ static PyObject* gstate__stringPath(gstateObject* self, PyObject* args)
 			}
 		else goto L0;
 		text = PyBytes_AsString(obj0);
-		textlen = PyBytes_GET_SIZE(obj0);
+		textlen = RLPyBytes_Size(obj0);
 #ifdef	RENDERPM_FT
 		}
 #endif
@@ -1204,7 +1216,7 @@ static PyObject* gstate__stringPath(gstateObject* self, PyObject* args)
 			Py_INCREF(Py_None);
 			p = Py_None;
 			}
-		PyTuple_SET_ITEM(P, i, p);
+		RLPyTuple_SetItem(P, i, p);
 		x += w*s;
 		}
 	if(textObj!=obj0) Py_DECREF(obj0);
@@ -1424,11 +1436,11 @@ static	PyObject*  _get_gstateDashArray(gstateObject* self)
 	if(!(r=PyTuple_New(2))) goto L0;
 	if(!(pDash=PyTuple_New(n_dash=self->dash.n_dash))) goto L0;
 	if(!(v = PyFloat_FromDouble(self->dash.offset))) goto L0;
-	PyTuple_SET_ITEM(r,0,v);
-	PyTuple_SET_ITEM(r,1,pDash);
+	RLPyTuple_SetItem(r,0,v);
+	RLPyTuple_SetItem(r,1,pDash);
 	for(dash=self->dash.dash,i=0;i<n_dash;i++){
 		if(!(v = PyFloat_FromDouble(dash[i]))) goto L0;
-		PyTuple_SET_ITEM(pDash,i,v);
+		RLPyTuple_SetItem(pDash,i,v);
 		}
 	return r;
 L0:
@@ -1595,7 +1607,7 @@ static PyObject* gstate_getattr(gstateObject *self, char *name)
 		pixBufT* p = self->pixBuf;
 		int	nw = p->rowstride;
 		PyObject *v = PyBytes_FromStringAndSize((char *)p->buf, p->height*nw);
-		char	*r1 = PyBytes_AS_STRING(v);
+		char	*r1 = RLPyBytes_AsString(v);
 		char	*r2 = r1 + (p->height-1)*nw;
 		while(r1<r2){
 			int	i;
@@ -1820,8 +1832,8 @@ static	char* my_pfb_reader(void *data, const char *filename, int *psize)
 	if(result){
 		/*the file should have been read as binary*/
 		if(PyBytes_Check(result)){
-			char	*pystr = PyBytes_AS_STRING(result);
-			int		size = (int)PyBytes_GET_SIZE(result);
+			char	*pystr = RLPyBytes_AsString(result);
+			int		size = (int)RLPyBytes_Size(result);
 			*psize = size;
 			memcpy(pfb=gt1_alloc(size),pystr,size);
 			}

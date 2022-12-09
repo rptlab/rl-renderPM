@@ -339,35 +339,9 @@ def showEnv():
     print('--------------------------')
     if action<0:
         sys.exit(0)
+
 def main():
     showEnv()
-    #test to see if we've a special command
-    if 'test' in sys.argv \
-        or 'tests' in sys.argv \
-        or 'tests-postinstall' in sys.argv \
-        or 'tests-preinstall' in sys.argv:
-        verboseTests = specialOption('--verbose-tests')
-        excludes = [_ for _ in sys.argv if _.startswith('--exclude=')]
-        for _ in excludes:
-            sys.argv.remove(_)
-        if len(sys.argv)!=2:
-            raise ValueError('tests commands may only be used alone sys.argv[1:]=%s' % repr(sys.argv[1:]))
-        cmd = sys.argv[-1]
-        PYTHONPATH = [pkgDir] if cmd!='test' else []
-        if cmd=='tests-preinstall':
-            PYTHONPATH.insert(0,pjoin(pkgDir,'src'))
-        if PYTHONPATH: os.environ['PYTHONPATH']=os.pathsep.join(PYTHONPATH)
-        os.chdir(pjoin(pkgDir,'tests'))
-        cli = [sys.executable, 'runAll.py']+excludes
-        if cmd=='tests-postinstall':
-            cli.append('--post-install')
-        if verboseTests:
-            cli.append('--verbosity=2')
-        r = spCall(cli)
-        sys.exit(('!!!!! runAll.py --> %s should exit with error !!!!!' % r) if r else r)
-    elif 'null-cmd' in sys.argv or 'null-command' in sys.argv:
-        sys.exit(0)
-
     debug_compile_args = []
     debug_link_args = []
     debug_macros = []
@@ -492,36 +466,38 @@ def main():
     if not FT_LIB:
         raise ValueError('Cannot install without freetype which has not been found')
 
-    def make_la_info():
-        '''compute limited api and abi info'''
-        global py_limited_kwds, cpstr
-        cpstr = get_abi_tag()
-        if cpstr.startswith("cp"):
-            lav = '0x03070000'
-            cpstr = 'cp37'
-            if sys.platform == "darwin":
-                machine = sysconfig.get_platform().split('-')[-1]
-                if machine=='arm64' or os.environ.get('ARCHFLAGS','')=='-arch arm64':
-                    #according to cibuildwheel/github M1 supports pythons >= 3.8
-                    lav = '0x03080000'
-                    cpstr = 'cp38'
-            py_limited_kwds = dict(
-                                    define_macros=[("Py_LIMITED_API", lav)],
-                                    py_limited_api=True,
-                                    )
-        else:
-            py_limited_kwds = {}
+    def get_la_info():
+        limited_api_kwds = {}
+        if specialOption('--abi3') or os.environ.get('ABI3_WHEEL','0')=='1':
+            cpstr = get_abi_tag()
+            if cpstr.startswith("cp"):
+                lav = '0x03070000'
+                cpstr = 'cp37'
+                if sys.platform == "darwin":
+                    machine = sysconfig.get_platform().split('-')[-1]
+                    if machine=='arm64' or os.environ.get('ARCHFLAGS','')=='-arch arm64':
+                        #according to cibuildwheel/github M1 supports pythons >= 3.8
+                        cpstr = 'cp38'
+                        lav = '0x03080000'
 
-    make_la_info()
+                class bdist_wheel_abi3(bdist_wheel):
+                    __cpstr = cpstr
+                    def get_tag(self):
+                        python, abi, plat = super().get_tag()
+                        if python.startswith("cp"):
+                            abi = 'abi3'
+                            python = self.__cpstr
+                        return python,abi,plat
 
-    class bdist_wheel_abi3(bdist_wheel):
-        def get_tag(self):
-            python, abi, plat = super().get_tag()
+                limited_api_kwds = dict(
+                            cmdclass={"bdist_wheel": bdist_wheel_abi3},
+                            macros=[("Py_LIMITED_API", lav)],
+                            )
 
-            if python.startswith("cp"):
-                abi = 'abi3'
-                python = cpstr
-            return python,abi,plat
+        return limited_api_kwds
+
+    limited_api_kwds = get_la_info()
+    limited_api_macros = limited_api_kwds.pop('macros',[])
 
     def getVersionFromCCode(fn):
         tag = re.search(r'^#define\s+VERSION\s+"([^"]*)"',open(fn,'r').read(),re.M)
@@ -531,7 +507,13 @@ def main():
                     Extension( '_renderPM',
                                 SOURCES,
                                 include_dirs=[RENDERPM,LIBART_INC,GT1_DIR]+FT_INC_DIR,
-                                define_macros=FT_MACROS+[('LIBART_COMPILATION',None)]+debug_macros+[('LIBART_VERSION',LIBART_VERSION)],
+                                define_macros=(
+                                        FT_MACROS
+                                        +[('LIBART_COMPILATION',None)]
+                                        +debug_macros+[('LIBART_VERSION',LIBART_VERSION)]
+                                        +limited_api_macros
+                                        ),
+                                py_limited_api = limited_api_macros!=[],
                                 library_dirs=[]+FT_LIB_DIR,
 
                                 # libraries to link against
@@ -571,7 +553,7 @@ def main():
         python_requires='>=3.7,<4',
         extras_require={
             },
-        cmdclass={"bdist_wheel": bdist_wheel_abi3},
+        **limited_api_kwds
         )
 
 if __name__=='__main__':
