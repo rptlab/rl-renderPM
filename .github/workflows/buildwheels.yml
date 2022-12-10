@@ -118,7 +118,7 @@ jobs:
           CITOOLS_PASSWORD: "${{secrets.CITOOLS_PASSWORD}}"
         run: |
             python -mpip install --no-cache https://hg.reportlab.com/hg-public/rl-ci-tools/archive/tip.tar.gz -U
-            BODY="$(python -mrl_ci_tools cache-info --subdir='${{ github.event.repository.name }}' '*.whl')
+            BODY="$(python -mrl_ci_tools cache-info --subdir='${{ github.event.repository.name }}' '*.whl')"
             NUPLOADS=$(expr $(echo "$BODY" | wc -l) - 1)
             SUBJECT="$NUPLOADS ${{ github.event.repository.name }} wheels uploaded to our pypi/caches/${{ github.event.repository.name }} folder by github"
             python -mrl_ci_tools email --subject="$SUBJECT" --body="$BODY"
