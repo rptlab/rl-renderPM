@@ -37,10 +37,11 @@ build
 *.sublime-project
 
 syntax: regexp
+^MANIFEST$
 ^test/
 ^tmp/
 ^dist/.*\.(?:whl|zip|tar\.gz)
-^rl_renderPM.egg-info/.*
+.*.egg-info/.*
 ^bin/
 ^local/
 ^[Ii]nclude/
