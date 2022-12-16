@@ -1,1 +1,1 @@
-include README.* LICENSE.txt test/* src/*
+include README.* LICENSE test/* src/*

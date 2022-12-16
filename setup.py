@@ -504,7 +504,7 @@ def main():
         return tag and tag.group(1) or ''
     setup(
         ext_modules=[
-                    Extension( '_renderPM',
+                    Extension( '_rl_renderPM',
                                 SOURCES,
                                 include_dirs=[RENDERPM,LIBART_INC,GT1_DIR]+FT_INC_DIR,
                                 define_macros=(

@@ -32,7 +32,7 @@
 
 
 #define VERSION "4.0.3"
-#define MODULENAME "_renderPM"
+#define MODULENAME "_rl_renderPM"
 #define PyInt_FromLong	PyLong_FromLong
 #define staticforward static
 #define statichere static
@@ -48,12 +48,12 @@ PyObject *RLPy_FindMethod(PyMethodDef *ml, PyObject *self, const char* name){
 #	define LIBART_VERSION ?.?.?
 #endif
 #ifdef	RENDERPM_FT
-#	define _FT_DOC "    _renderPM.ft_get_face(fontName) --> ft_face instance\n"
+#	define _FT_DOC "    _rl_renderPM.ft_get_face(fontName) --> ft_face instance\n"
 #else
 #	define _FT_DOC ""
 #endif
 #ifdef MEMORY_DEBUG
-#	define _MDBG_DOC "    _renderPM.mtrace(int) start or stop the malloc tracing\n"
+#	define _MDBG_DOC "    _rl_renderPM.mtrace(int) start or stop the malloc tracing\n"
 #else
 #	define _MDBG_DOC ""
 #endif
@@ -62,18 +62,18 @@ PyDoc_STRVAR(__DOC__,
 \n\
 Interface summary:\n\
 \n\
-    from reportlan.graphics import _renderPM\n\
-    _renderPM.gstate(width,height[,depth=3,bg=0xffffff]) create an \n\
+    from reportlan.graphics import _rl_renderPM\n\
+    _rl_renderPM.gstate(width,height[,depth=3,bg=0xffffff]) create an \n\
         initialised graphics state\n\
-    _renderPM.makeT1Font(fontName,pfbPath,names[,reader]) make a T1 font\n\
-    _renderPM.delCache() delete all T1 font info\n\
-    _renderPM.pil2pict(cols,rows,datastr,palette) return PICT version of\n\
+    _rl_renderPM.makeT1Font(fontName,pfbPath,names[,reader]) make a T1 font\n\
+    _rl_renderPM.delCache() delete all T1 font info\n\
+    _rl_renderPM.pil2pict(cols,rows,datastr,palette) return PICT version of\n\
         im as bytes\n"
 _FT_DOC
 _MDBG_DOC
 "\n\
-    _renderPM._libart_version base library version string\n\
-    _renderPM._version module version string ie " VERSION "\n\
+    _rl_renderPM._libart_version base library version string\n\
+    _rl_renderPM._version module version string ie " VERSION "\n\
 ");
 
 #if PY_VERSION_HEX < 0x01060000
@@ -463,7 +463,7 @@ static	PyObject*	gstate_moveToClosed(gstateObject* self, PyObject* args)
 static	gstateObject*	_gstate_pathLenCheck(gstateObject* self)
 {
 	if(!self->pathLen){
-		PyErr_SetString(PyExc_ValueError, "_renderPM._gstate_pathLenCheck: path must begin with a moveTo");
+		PyErr_SetString(PyExc_ValueError, "_rl_renderPM._gstate_pathLenCheck: path must begin with a moveTo");
 		return NULL;
 		}
 	return self;
@@ -523,13 +523,13 @@ static	PyObject*	gstate_pathClose(gstateObject* self, PyObject* args)
 			break;
 			}
 		else if(c==ART_MOVETO){
-			PyErr_SetString(PyExc_ValueError, "_renderPM.gstate_pathClose: path already closed");
+			PyErr_SetString(PyExc_ValueError, "_rl_renderPM.gstate_pathClose: path already closed");
 			return NULL;
 			}
 		}
 
 	if(q<p){
-		PyErr_SetString(PyExc_ValueError, "_renderPM.gstate_pathClose: bpath has no MOVETO");
+		PyErr_SetString(PyExc_ValueError, "_rl_renderPM.gstate_pathClose: bpath has no MOVETO");
 		return NULL;
 		}
 
@@ -889,7 +889,7 @@ static PyObject* gstate_drawString(gstateObject* self, PyObject* args)
 	_ft_outliner_user_t _ft_data;
 #endif
 	if(!font){
-		PyErr_SetString(PyExc_ValueError, "_renderPM.gstate_drawString: No font set!");
+		PyErr_SetString(PyExc_ValueError, "_rl_renderPM.gstate_drawString: No font set!");
 		return NULL;
 		}
 	if(!PyArg_ParseTuple(args,"ddO:drawString", &x, &y, &textObj)) return NULL;
@@ -909,7 +909,7 @@ static PyObject* gstate_drawString(gstateObject* self, PyObject* args)
 		textlen = RLPyUnicode_GetLength(obj0);
 		utext = PyUnicode_AsUCS4Copy(obj0);	/*we own this as of now*/
 		if(!utext){
-			PyErr_SetString(PyExc_ValueError, "_renderPM.gstate_drawString: Cannot allocate UCS4 memory!");
+			PyErr_SetString(PyExc_ValueError, "_rl_renderPM.gstate_drawString: Cannot allocate UCS4 memory!");
 			if(textObj!=obj0) Py_DECREF(obj0);
 			return NULL;
 		}
@@ -1009,7 +1009,7 @@ static PyObject* gstate_drawString(gstateObject* self, PyObject* args)
 	Py_INCREF(Py_None);
 	return Py_None;
 
-L0:	PyErr_SetString(PyExc_ValueError, "_renderPM.gstate_drawString: text must be bytes/unicode!");
+L0:	PyErr_SetString(PyExc_ValueError, "_rl_renderPM.gstate_drawString: text must be bytes/unicode!");
 	return NULL;
 }
 
@@ -1123,7 +1123,7 @@ static PyObject* gstate__stringPath(gstateObject* self, PyObject* args)
 	_ft_outliner_user_t _ft_data;
 #endif
 	if(!font){
-		PyErr_SetString(PyExc_ValueError, "_renderPM.gstate__stringPath: No font set!");
+		PyErr_SetString(PyExc_ValueError, "_rl_renderPM.gstate__stringPath: No font set!");
 		return NULL;
 		}
 	if(!PyArg_ParseTuple(args,"O|dd:_stringPath", &textObj, &x, &y)) return NULL;
@@ -1143,7 +1143,7 @@ static PyObject* gstate__stringPath(gstateObject* self, PyObject* args)
 		textlen = RLPyUnicode_GetLength(obj0);
 		utext = PyUnicode_AsUCS4Copy(obj0);	/*we own this as of now*/
 		if(!utext){
-			PyErr_SetString(PyExc_ValueError, "_renderPM.gstate__stringPath: Cannot allocate UCS4 memory!");
+			PyErr_SetString(PyExc_ValueError, "_rl_renderPM.gstate__stringPath: Cannot allocate UCS4 memory!");
 			if(textObj!=obj0) Py_DECREF(obj0);
 			return NULL;
 		}
@@ -1226,7 +1226,7 @@ static PyObject* gstate__stringPath(gstateObject* self, PyObject* args)
 #endif
 	return P;
 
-L0:	PyErr_SetString(PyExc_ValueError, "_renderPM.gstate__stringPath: text must be bytes/unicode!");
+L0:	PyErr_SetString(PyExc_ValueError, "_rl_renderPM.gstate__stringPath: text must be bytes/unicode!");
 	return NULL;
 }
 
@@ -1242,7 +1242,7 @@ static PyObject* gstate_setFont(gstateObject* self, PyObject* args)
 	if(PyUnicode_Check(fontNameObj)){
 		b=PyUnicode_AsUTF8String(fontNameObj);
 		if(!b){
-			PyErr_SetString(PyExc_ValueError, "_renderPM.gstate_setFont: bytes conversion of fontName failed");
+			PyErr_SetString(PyExc_ValueError, "_rl_renderPM.gstate_setFont: bytes conversion of fontName failed");
 			goto err;
 			}
 		fontName = PyBytes_AsString(b);
@@ -1251,11 +1251,11 @@ static PyObject* gstate_setFont(gstateObject* self, PyObject* args)
 		fontName = PyBytes_AsString(fontNameObj);
 		}
 	if(!fontName){
-		PyErr_SetString(PyExc_ValueError, "_renderPM.gstate_setFont: Invalid fontName");
+		PyErr_SetString(PyExc_ValueError, "_rl_renderPM.gstate_setFont: Invalid fontName");
 		goto err;
 		}
 	if(fontSize<0){
-		PyErr_SetString(PyExc_ValueError, "_renderPM.gstate_setFont: Invalid fontSize");
+		PyErr_SetString(PyExc_ValueError, "_rl_renderPM.gstate_setFont: Invalid fontSize");
 		goto err;
 		}
 	f=gt1_get_encoded_font(fontName);
@@ -1285,7 +1285,7 @@ static PyObject* gstate_setFont(gstateObject* self, PyObject* args)
 		return Py_None;
 		}
 
-	PyErr_SetString(PyExc_ValueError, "_renderPM.gstate_setFont: Can't find font!");
+	PyErr_SetString(PyExc_ValueError, "_rl_renderPM.gstate_setFont: Can't find font!");
 err:
 	Py_XDECREF(b);
 	return NULL;
@@ -1785,7 +1785,7 @@ static	gstateObject* gstate(PyObject* module, PyObject* args, PyObject* keywds)
 	if(!PyArg_ParseTupleAndKeywords(args,keywds,"ii|iO:gstate",kwlist,&w,&h,&d,&pbg)) return NULL;
 	if(pbg){
 		if(!_set_gstateColorX(pbg,&bg)){
-			PyErr_SetString(PyExc_ValueError, "_renderPM.gstate: invalid value for bg");
+			PyErr_SetString(PyExc_ValueError, "_rl_renderPM.gstate: invalid value for bg");
 			return NULL;
 			}
 		}
@@ -1794,7 +1794,7 @@ static	gstateObject* gstate(PyObject* module, PyObject* args, PyObject* keywds)
 		self->pixBuf = pixBufAlloc(w,h,d,bg);
 		self->path = art_new(ArtBpath,m);
 		if(!self->pixBuf){
-			PyErr_SetString(PyExc_ValueError, "_renderPM.gstate: no memory");
+			PyErr_SetString(PyExc_ValueError, "_rl_renderPM.gstate: no memory");
 			gstateFree(self);
 			self = NULL;
 			}
@@ -1859,7 +1859,7 @@ static	PyObject*	makeT1Font(PyObject* self, PyObject *args, PyObject *kw)
 			}
 		}
 	if(!PySequence_Check(L)){
-		PyErr_SetString(PyExc_ValueError, "_renderPM.makeT1Font: names should be a sequence object returning strings");
+		PyErr_SetString(PyExc_ValueError, "_rl_renderPM.makeT1Font: names should be a sequence object returning strings");
 		return NULL;
 		}
 	N = PySequence_Length(L);
@@ -1875,7 +1875,7 @@ static	PyObject*	makeT1Font(PyObject* self, PyObject *args, PyObject *kw)
 		else if(PyUnicode_Check(v)){
 			u = PyUnicode_AsUTF8String(v);
 			if(!u){
-				PyErr_SetString(PyExc_ValueError, "_renderPM.makeT1Font: unicode name could not be converted to utf8");
+				PyErr_SetString(PyExc_ValueError, "_rl_renderPM.makeT1Font: unicode name could not be converted to utf8");
 				Py_DECREF(u);
 				Py_DECREF(v);
 				break;
@@ -1886,7 +1886,7 @@ static	PyObject*	makeT1Font(PyObject* self, PyObject *args, PyObject *kw)
 				}
 			}
 		else {
-			PyErr_SetString(PyExc_ValueError, "_renderPM.makeT1Font: names should all be strings");
+			PyErr_SetString(PyExc_ValueError, "_rl_renderPM.makeT1Font: names should all be strings");
 			Py_DECREF(v);
 			break;
 			}
@@ -1902,7 +1902,7 @@ static	PyObject*	makeT1Font(PyObject* self, PyObject *args, PyObject *kw)
 			rfunc.reader = my_pfb_reader;
 			}
 		if(!gt1_create_encoded_font(name,pfbPath,names,(int)N,prfunc)){
-			PyErr_SetString(PyExc_ValueError, "_renderPM.makeT1Font: can't make font");
+			PyErr_SetString(PyExc_ValueError, "_rl_renderPM.makeT1Font: can't make font");
 			ok = 0;
 			}
 		}
@@ -2213,7 +2213,7 @@ static struct PyModuleDef moduleDef = {
 	NULL
 	};
 
-PyMODINIT_FUNC PyInit__renderPM(void)
+PyMODINIT_FUNC PyInit__rl_renderPM(void)
 {
 	PyObject *m=NULL, *obj=NULL;
 
