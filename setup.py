@@ -211,43 +211,6 @@ def pfxJoin(pfx,*N):
         R.append(os.path.join(pfx,n))
     return R
 
-reportlab_files= [
-        'fonts/00readme.txt',
-        'fonts/bitstream-vera-license.txt',
-        'fonts/DarkGarden-changelog.txt',
-        'fonts/DarkGarden-copying-gpl.txt',
-        'fonts/DarkGarden-copying.txt',
-        'fonts/DarkGarden-readme.txt',
-        'fonts/DarkGarden.sfd',
-        'fonts/DarkGardenMK.afm',
-        'fonts/DarkGardenMK.pfb',
-        'fonts/Vera.ttf',
-        'fonts/VeraBd.ttf',
-        'fonts/VeraBI.ttf',
-        'fonts/VeraIt.ttf',
-        'fonts/_abi____.pfb',
-        'fonts/_ab_____.pfb',
-        'fonts/_ai_____.pfb',
-        'fonts/_a______.pfb',
-        'fonts/cobo____.pfb',
-        'fonts/cob_____.pfb',
-        'fonts/com_____.pfb',
-        'fonts/coo_____.pfb',
-        'fonts/_ebi____.pfb',
-        'fonts/_eb_____.pfb',
-        'fonts/_ei_____.pfb',
-        'fonts/_er_____.pfb',
-        'fonts/sy______.pfb',
-        'fonts/zd______.pfb',
-        'fonts/zx______.pfb',
-        'fonts/zy______.pfb',
-        'fonts/callig15.pfb',
-        'fonts/callig15.afm',
-        'reportlab/graphics/barcode/README'
-        'reportlab/graphics/barcode/TODO'
-        'license.txt',
-        ]
-
 def url2data(url,returnRaw=False):
     import urllib.request as ureq
     remotehandle = ureq.urlopen(url)
