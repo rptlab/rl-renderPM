@@ -197,19 +197,9 @@ class inc_lib_dirs:
         return ftv,I,L
 inc_lib_dirs=inc_lib_dirs()
 
-def getVersionFromCCode(fn):
-    tag = re.search(r'^#define\s+VERSION\s+"([^"]*)"',open(fn,'r').read(),re.M)
-    return tag and tag.group(1) or ''
-
 def _find_ccode(cn):
     fn = normpath(abspath(pjoin('src',cn)))
     return dirname(fn) if isfile(fn) else None
-
-def pfxJoin(pfx,*N):
-    R=[]
-    for n in N:
-        R.append(os.path.join(pfx,n))
-    return R
 
 def url2data(url,returnRaw=False):
     import urllib.request as ureq
@@ -463,8 +453,17 @@ def main():
     limited_api_macros = limited_api_kwds.pop('macros',[])
 
     def getVersionFromCCode(fn):
-        tag = re.search(r'^#define\s+VERSION\s+"([^"]*)"',open(fn,'r').read(),re.M)
+        with open(fn,'r') as _:
+            tag = re.search(r'^#define\s+VERSION\s+"([^"]*)"',_.read(),re.M)
         return tag and tag.group(1) or ''
+
+    def getREADME_md(fn='README.md'):
+        try:
+            with open(fn,'r') as _:
+                return _.read()
+        except:
+            return """This is an bitmap render accelerator module for the ReportLab Toolkit Open Source Python library for generating PDFs and graphics."""
+
     setup(
         ext_modules=[
                     Extension( '_rl_renderPM',
@@ -489,8 +488,9 @@ def main():
         name="rl_renderPM",
         version=getVersionFromCCode(pjoin('src','_renderPM.c')),
         license="BSD license (see LICENSE.txt for details), Copyright (c) 2000-2022, ReportLab Inc.",
-        description="Acclerator for ReportLab",
-        long_description="""This is an accelerator module for the ReportLab Toolkit Open Source Python library for generating PDFs and graphics.""",
+        description="Bitmap Render Acclerator for ReportLab",
+        long_description=getREADME_md(),
+        long_description_content_type="text/x-rst",
         author="Andy Robinson, Robin Becker, the ReportLab team and the community",
         author_email="reportlab-users@lists2.reportlab.com",
         url="http://www.reportlab.com/",
