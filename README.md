@@ -12,3 +12,9 @@ using one of the settings files ``reportlab/local_reportlab_settings.py``, ``rep
 
 The default value of ``renderPMBackend`` is ``'rlPyCairo'``, but it can be set to ``'_renderPM'`` to use this extension
 which is based on an older library ``libart_lgpl``. 
+
+``Wheels``
+
+you should be able to create a wheel using
+
+ pip wheel --wheel-dir=dist --no-deps .

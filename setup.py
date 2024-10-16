@@ -2,8 +2,11 @@
 #see license.txt for license details
 import os, sys, glob, shutil, re, sysconfig, traceback, io, subprocess
 from urllib.parse import quote as urlquote
-from wheel.bdist_wheel import bdist_wheel, get_abi_tag
 from setuptools import setup, Extension
+try:
+    from setuptools.command.bdist_wheel import bdist_wheel, get_abi_tag
+except ImportError:
+    from wheel.bdist_wheel import bdist_wheel, get_abi_tag
 
 platform = sys.platform
 pjoin = os.path.join
