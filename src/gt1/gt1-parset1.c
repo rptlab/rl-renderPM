@@ -1603,15 +1603,15 @@ static void
 internal_ifelse (Gt1PSContext *psc)
 {
 	Gt1Proc *proc1, *proc2;
-	int bool;
+	int b;
 
 	if (psc->n_values >= 3 &&
-			get_stack_bool (psc, &bool, 3) &&
+			get_stack_bool (psc, &b, 3) &&
 			get_stack_proc (psc, &proc1, 2) &&
 			get_stack_proc (psc, &proc2, 1))
 		{
 			psc->n_values -= 3;
-			if (bool)
+			if (b)
 	eval_proc (psc, proc1);
 			else
 	eval_proc (psc, proc2);
@@ -1622,14 +1622,14 @@ static void
 internal_if (Gt1PSContext *psc)
 {
 	Gt1Proc *proc;
-	int bool;
+	int b;
 
 	if (psc->n_values >= 2 &&
-			get_stack_bool (psc, &bool, 2) &&
+			get_stack_bool (psc, &b, 2) &&
 			get_stack_proc (psc, &proc, 1))
 		{
 			psc->n_values -= 2;
-			if (bool)
+			if (b)
 	eval_proc (psc, proc);
 		}
 }
@@ -1664,12 +1664,12 @@ internal_for (Gt1PSContext *psc)
 static void
 internal_not (Gt1PSContext *psc)
 {
-	int bool;
+	int b;
 
 	if (psc->n_values >= 1 &&
-			get_stack_bool (psc, &bool, 1))
+			get_stack_bool (psc, &b, 1))
 		{
-			psc->value_stack[psc->n_values - 1].val.bool_val = !bool;
+			psc->value_stack[psc->n_values - 1].val.bool_val = !b;
 		}
 }
 
