@@ -1,6 +1,12 @@
 if  __name__=='__main__':
     import sys, os, traceback
-    import _renderPM
+    try:
+        import _rl_renderPM as _renderPM
+    except ImportError:
+        try:
+            import _renderPM
+        except ImportError:
+            raise ImportError('Cannot impor either _rl_renderPM or _renderPM')
     from reportlab.graphics import shapes, renderPM
     from reportlab.rl_config import verbose
 
