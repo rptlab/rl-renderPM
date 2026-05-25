@@ -18,6 +18,7 @@
 #	define RLPyUnicode_GetLength PyUnicode_GET_LENGTH
 #endif
 #include <string.h>
+#include <stdint.h>
 #include "libart_lgpl/libart.h"
 #include "gt1/gt1-parset1.h"
 #include "gt1/gt1-misc.h"
@@ -31,7 +32,7 @@
 #endif
 
 
-#define VERSION "4.0.3"
+#define VERSION "4.0.5"
 #define MODULENAME "_rl_renderPM"
 #define PyInt_FromLong	PyLong_FromLong
 #define staticforward static
@@ -259,14 +260,46 @@ static PyTypeObject py_FT_Font_Type = {
 	};
 #endif /*ifdef	RENDERPM_FT*/
 
+#if (SIZE_MAX == 0xFFFFFFFF)
+	#define _MUL2ARG(v) (uint32_t)v
+	static uint32_t _mul2(uint32_t a, uint32_t b){
+		uint32_t a1, b1;
+		if (a > b) { a1 = a; b1 = b; }
+		else       { a1 = b; b1 = a; }
+		if (b1 > 0xffff) return 0;
+		else {
+			uint32_t a1l = (a1 & 0xffff) * b1;
+			uint32_t a1h = (a1 >> 32) * b1 + (a1l >> 32);
+			if (a1h >> 32) return 0;
+		}
+		return b1 * a1;
+	}
+#elif (SIZE_MAX == 0xFFFFFFFFFFFFFFFF)
+	#define _MUL2ARG(v) (uint64_t)v
+	static uint64_t _mul2(uint64_t a, uint64_t b){
+		uint64_t a1, b1;
+		if (a > b) { a1 = a; b1 = b; }
+		else       { a1 = b; b1 = a; }
+		if (b1 > 0xffffffff) return 0;
+		else {
+			uint64_t a1l = (a1 & 0xffffffff) * b1;
+			uint64_t a1h = (a1 >> 32) * b1 + (a1l >> 32);
+			if (a1h >> 32) return 0;
+		}
+		return b1 * a1;
+	}
+#else
+  #error "Only support 32 and 64 bit size_t"
+#endif
+
 static pixBufT* pixBufAlloc(int w, int h, int nchan, gstateColorX bg)
 {
 	pixBufT* p = PyMem_Malloc(sizeof(pixBufT));
 	if(p){
-		size_t	n;
 		p->format = 0; /* RGB */
-		p->buf = PyMem_Malloc(n=w*h*nchan); /* start with white background by default */
-		if(p->buf){
+		size_t n=_mul2(_mul2(_MUL2ARG(w),_MUL2ARG(h)),_MUL2ARG(nchan));
+		if(n) p->buf = PyMem_Malloc(n); /* start with white background by default */
+		if(n && p->buf){
 			/*initialise the pixmap pixels*/
 			art_u8	*b, *lim = p->buf+n;
 			Py_ssize_t	stride = w*nchan, i;
