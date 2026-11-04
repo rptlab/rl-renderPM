@@ -1,4 +1,3 @@
-syntax: glob
 *.o
 *.lo
 *.la
@@ -36,19 +35,16 @@ __pycache__
 build
 *.sublime-project
 
-syntax: regexp
-^MANIFEST$
-^test/
-^tmp/
-^dist/.*\.(?:whl|zip|tar\.gz)
-.*.egg-info/.*
-^bin/
-^local/
-^[Ii]nclude/
-^[Ll]ib/
-^[Ss]cripts/
-^[Ss]hare/
-^[Ss]elenium/
-^\.?py\d+/
-^\.git/
-^\.gitignore$
+MANIFEST
+test/
+tmp/
+dist/*.(?:whl|zip|tar.gz)
+*?egg-info/*
+bin/
+local/
+[Ii]nclude/
+[Ll]ib/
+[Ss]cripts/
+[Ss]hare/
+[Ss]elenium/
+.?py.+/
